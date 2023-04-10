@@ -77,10 +77,14 @@ class Map:
                                 
                                 up1 = (point1[0], point1[1] - self.detail)
                                 up2 = (point2[0], point2[1] - self.detail)
-                                if self.points[up1] and self.points[up2]:
-                                    continue
-                                
-                                after_cal_ys.append(point1[1])
+                                if not (up1[1] < self.max_height or up2[1] < self.max_height):
+                                    if self.points[up1] and self.points[up2]:
+                                        continue
+                                    
+                                    after_cal_ys.append(point1[1])
+                                    
+                                else:
+                                    after_cal_ys.append(self.max_height)
                             
                             elif abs(dy) == self.detail:
                                 
@@ -93,17 +97,18 @@ class Map:
                                 y = point1[1] + (dy * percentage_x)
                                 after_cal_ys.append(y)
             
-            after_cal_ys.sort()
-            y_values.append(after_cal_ys[0])
-            for _ in range(len(after_cal_ys)//3):
-                y_values.append(after_cal_ys[-3 * _])
+            if len(after_cal_ys) > 0:
+                after_cal_ys.sort()
+                y_values.append(after_cal_ys[0])
+                for _ in range(len(after_cal_ys)//3):
+                    y_values.append(after_cal_ys[-3 * _])
                                                          
         return y_values
 
     def generate_map(self):
         random.seed(self.seed)
         seed_heights = {}
-        if not self.min_height: self.min_height = math.floor(self.height * 0.8)
+        if not self.min_height: self.min_height = math.floor(self.height * 0.9)
         if not self.max_height: self.max_height = math.ceil(self.height * 0.3)
         last_height = random.randint(self.max_height, self.min_height)
         for x in range(-self.detail, self.width + self.detail, self.detail):
@@ -125,6 +130,7 @@ if __name__ == "__main__":
     running = True
     right_clicked = False
     left_clicked = False
+    middle_clicked = False
     while running:
         
         screen.fill((255, 255, 255))
@@ -142,12 +148,18 @@ if __name__ == "__main__":
                 if event.button == 1:
                     left_clicked = True
                     
+                if event.button == 2:
+                    middle_clicked = True
+                    
                 if event.button == 3:
                     right_clicked = True
                     
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     left_clicked = False
+                    
+                if event.button == 2:
+                    middle_clicked = False
                     
                 if event.button == 3:
                     right_clicked = False
@@ -157,6 +169,12 @@ if __name__ == "__main__":
             points = map.get_nearest_points((mousex, mousey), map.detail * 2)
             for point in points:
                 map.points[point] = False
+                
+        if middle_clicked:
+            mousex, mousey = pygame.mouse.get_pos()
+            points = map.get_nearest_points((mousex, mousey), map.detail * 2)
+            for point in points:
+                map.points[point] = True
                 
         if left_clicked:
             mousex, mousey = pygame.mouse.get_pos()
